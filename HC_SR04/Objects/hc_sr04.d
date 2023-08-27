@@ -1,0 +1,11 @@
+.\objects\hc_sr04.o: lib\app\HC_SR04\hc_sr04.c
+.\objects\hc_sr04.o: .\lib\app\HC_SR04\hc_sr04.h
+.\objects\hc_sr04.o: .\lib\inc\stm32f10x_type.h
+.\objects\hc_sr04.o: .\lib\inc\GPIOweibangding.h
+.\objects\hc_sr04.o: .\lib\inc\stm32f10x_map.h
+.\objects\hc_sr04.o: .\lib\inc\stm32f10x_conf.h
+.\objects\hc_sr04.o: .\lib\inc\cortexm3_macro.h
+.\objects\hc_sr04.o: .\lib\inc\stm32f10x_rcc.h
+.\objects\hc_sr04.o: .\lib\inc\stm32f10x_gpio.h
+.\objects\hc_sr04.o: .\lib\app\delay_by_sytick\delay_by_systick.h
+.\objects\hc_sr04.o: .\lib\inc\stm32f10x_tim.h

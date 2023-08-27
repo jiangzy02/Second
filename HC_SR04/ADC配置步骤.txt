@@ -1,0 +1,78 @@
+
+
+（1）  使能端口时钟和 ADC 时钟， 设置引脚模式为模拟输入
+	能 GPIOA端口时钟和 ADC1 时钟
+	将 PA1 引脚配置为模拟输入模式
+
+（2）	设置 ADC 的分频因子
+	RCC_ADCCLKConfig(RCC_PCLK2_Div6);
+
+
+
+（3）	初始化 ADC 参数， 包括 ADC 工作模式、 规则序列等
+	typedef struct
+	{
+	uint32_t ADC_Mode; // ADC 工作模式选择
+	FunctionalState ADC_ScanConvMode; /* ADC 扫描（多通道） 或者单次（单通道） 模式选择 */
+	FunctionalState ADC_ContinuousConvMode; // ADC 单次转换或者连续转换选择
+	uint32_t ADC_ExternalTrigConv; // ADC 转换触发信号选择
+	uint32_t ADC_DataAlign; // ADC 数据寄存器对齐格式
+	uint8_t ADC_NbrOfChannel; // ADC 采集通道数
+	} ADC_InitTypeDef;
+
+	ADC_Mode： ADC 模式选择， 有独立模式、 双重模式， 在双重模式下还有很细分模式可选， 具体由 ADC_CR1:DUALMOD 位配置
+
+	ADC_ScanConvMode： ADC 扫描模式选择。 可选参数为 ENABLE 或 DISABLE， 用来设置是否打开 ADC 扫描模式。 如果是单通道 AD 转换， 选择 DISABLE； 如果是多通道 AD 转换， 选择 ENABLE。
+	
+	ADC_ContinuousConvMode： ADC 连续转换模式选择。 可选参数为 ENABLE 或DISABLE， 用来设置是连续转换还是单次转换模式。 如果为 ENABLE， 则选择连续转换模式； 如果为 DISABLE， 则选择单次转换模式， 转换一次后停止， 需要手动控制才能重新启动转换。
+
+	ADC_ExternalTrigConv： ADC 外部触发选择。 ADC 外部触发条件有很多， 在前面介绍框图时已列出， 根据需要选择对应的触发条件， 通常我们使用软件自动触发， 所以此成员可以不用配置
+
+	ADC_DataAlign ： ADC 数 据 对 齐 方 式 。 可 选 参 数 为 右 对 齐ADC_DataAlign_Right 和左对齐 ADC_DataAlign_Left。
+
+	ADC_NbrOfChannel： AD 转换通道数目， 根据实际设置。 具体的通道数和通道的转换顺序是配置规则序列或注入序列寄存器。
+
+	ADC_InitTypeDef ADC_InitStructure;	
+	ADC_InitStructure.ADC_Mode = ADC_Mode_Independent;
+	ADC_InitStructure.ADC_ScanConvMode = DISABLE;//非扫描模式
+	ADC_InitStructure.ADC_ContinuousConvMode = DISABLE;//关闭连续转换
+	ADC_InitStructure.ADC_ExternalTrigConv =
+	ADC_ExternalTrigConv_None;//禁止触发检测， 使用软件触发
+	ADC_InitStructure.ADC_DataAlign = ADC_DataAlign_Right;//右对齐
+	ADC_InitStructure.ADC_NbrOfChannel = 1;//1 个转换在规则序列中 也就是只转换规则序列 1
+	ADC_Init(ADC1, &ADC_InitStructure);//ADC 初始化
+
+（4） 使能 ADC 并校准
+	ADC_Cmd(ADC1, ENABLE);//开启 AD 转换器
+	ADC_ResetCalibration(ADC1);//执行复位校准的方法
+	ADC_StartCalibration(ADC1); //开始指定 ADC1 的校准状态
+	while(ADC_GetResetCalibrationStatus(ADC1)); //等待复位校准结束
+	while(ADC_GetCalibrationStatus(ADC1)); //等待校准结束
+
+（5） 读取 ADC 转换值
+	设置规则序列通道以及采样周期的库函数
+	void ADC_RegularChannelConfig(ADC_TypeDef* ADCx, uint8_t ADC_Channel,uint8_t Rank, uint8_t ADC_SampleTime)； 
+	参数 1 用来选择 ADC， 参数 2 用来选择规则序列里面的通道， 参数 3 用来设置转换通道的数量， 参数 4 用来设置采样周期
+
+	设置好规则序列通道及采样周期， 接下来就要开启转换， 由于我们采用的是软件触发， 库函数如下
+	void ADC_SoftwareStartConvCmd(ADC_TypeDef* ADCx, FunctionalStateNewState);
+	例如要开启 ADC1 转换， 调用函数为：
+	ADC_SoftwareStartConvCmd(ADC1, ENABLE); //使能指定的 ADC1 的软件转换启动功能
+
+
+	开启转换之后， 就可以获取 ADC 转换结果数据， 调用的库函数是：
+	uint16_t ADC_GetConversionValue(ADC_TypeDef* ADCx);
+	同样如果要获取 ADC1 转换结果， 调用函数是：
+	ADC_GetConversionValue(ADC1);
+	
+	同时在 AD 转换中， 我们还要根据状态寄存器的标志位来获取 AD 转换的各个状态信息。 获取 AD 转换的状态信息的库函数是
+	FlagStatus ADC_GetFlagStatus(ADC_TypeDef* ADCx, uint8_t ADC_FLAG);
+	例如我们要判断 ADC1 的转换是否结束， 方法是：
+	hile(!ADC_GetFlagStatus(ADC1, ADC_FLAG_EOC ));//等待转换结束
+
+
+
+
+
+
+
