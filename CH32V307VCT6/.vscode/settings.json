@@ -1,0 +1,7 @@
+{
+    "files.associations": {
+        "onenet.h": "c",
+        "usart3.h": "c",
+        "debug.h": "c"
+    }
+}
